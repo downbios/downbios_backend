@@ -1,6 +1,5 @@
 import express, { RequestHandler } from "express";
 import multer from "multer";
-import path from "path";
 import fs from "fs";
 import { uploadToDropbox } from "../services/dropbox";
 import { connectDB } from "../database/db";
@@ -28,7 +27,7 @@ const uploadHandler: RequestHandler = async (req, res) => {
       [name, email, dropboxPath]
     );
 
-    fs.unlinkSync(file.path); // remove arquivo temporário
+    fs.unlinkSync(file.path);
 
     res.status(200).json({ message: "Upload realizado com sucesso!" });
   } catch (error) {
@@ -38,22 +37,5 @@ const uploadHandler: RequestHandler = async (req, res) => {
 };
 
 router.post("/", upload.single("file"), uploadHandler);
-
-router.get("/list", async (req, res): Promise<void> => {
-  const search = req.query.search?.toString().toLowerCase() || "";
-
-  try {
-    const db = await connectDB();
-    const rows = await db.all(
-      `SELECT filename FROM uploads WHERE LOWER(filename) LIKE ? ORDER BY timestamp DESC`,
-      [`%${search}%`]
-    );
-
-    res.json(rows.map((r) => r.filename));
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao buscar arquivos." });
-  }
-});
 
 export default router;

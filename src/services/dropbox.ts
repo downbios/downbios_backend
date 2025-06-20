@@ -1,6 +1,7 @@
 import { Dropbox } from "dropbox";
 import dotenv from "dotenv";
 import fs from "fs";
+import path from "path";
 
 dotenv.config();
 
@@ -16,4 +17,21 @@ export async function uploadToDropbox(localPath: string, dropboxPath: string) {
     mode: { ".tag": "overwrite" },
   });
   return response;
+}
+
+export async function listFilesFromDropbox(folderPath: string = "") {
+  const normalizedPath = normalizeDropboxPath(folderPath);
+
+  try {
+    const response = await dbx.filesListFolder({ path: normalizedPath });
+    return response.result.entries;
+  } catch (error) {
+    console.error("Erro ao listar arquivos do Dropbox:", error);
+    throw error;
+  }
+}
+
+function normalizeDropboxPath(inputPath: string): string {
+  const trimmed = inputPath.trim().replace(/^\/+|\/+$/g, "");
+  return trimmed === "" ? "" : `/${trimmed}`;
 }
